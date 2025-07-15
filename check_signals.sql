@@ -1,0 +1,1 @@
+SELECT id, "companyTicker", "isActive", "lastUpdated" FROM signals; 

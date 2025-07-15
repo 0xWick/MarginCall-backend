@@ -1,0 +1,62 @@
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: margincall-postgres
+    environment:
+      POSTGRES_DB: margincall
+      POSTGRES_USER: margincall
+      POSTGRES_PASSWORD: margincall123
+    ports: 
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - margincall-network
+
+  nestjs-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: margincall-backend
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_NAME: margincall
+      DATABASE_USER: margincall
+      DATABASE_PASSWORD: margincall123
+      NODE_ENV: development
+      PYTHON_SERVICE_URL: http://python-service:5001
+    depends_on:
+      - postgres
+      - python-service
+    networks:
+      - margincall-network
+
+  python-service:
+    build:
+      context: ./python-service
+      dockerfile: Dockerfile
+    container_name: margincall-python-service
+    ports:
+      - "5001:5001"
+    environment:
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_NAME: margincall
+      DATABASE_USER: margincall
+      DATABASE_PASSWORD: margincall123
+      PYTHONUNBUFFERED: 1
+    depends_on:
+      - postgres
+    networks:
+      - margincall-network
+
+volumes:
+  postgres_data:
+
+networks:
+  margincall-network:
+    driver: bridge 
